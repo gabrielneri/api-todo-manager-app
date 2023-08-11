@@ -8,5 +8,7 @@ class Task < ApplicationRecord
 
   scope :public_tasks, -> { where(visibility: :public_task) }
   scope :private_tasks, -> { where(visibility: :private_task )}
+  scope :not_finished_tasks, -> { where(status: :not_finished) }
+  scope :finished_tasks, -> { where(status: :finished) }
 
 end

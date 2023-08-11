@@ -5,6 +5,9 @@ Rails.application.routes.draw do
       collection do
         get 'public'
         get 'private'
+        get 'all'
+        get 'not_finished'
+        get 'finished'
       end
     end
   end

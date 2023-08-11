@@ -3,10 +3,10 @@ class Api::TasksController < ApplicationController
   before_action :set_task, only: %i[show update destroy]
 
   # GET /tasks 
-  # List all public tasks and just the user's private ones
+  # List all user tasks
   def index
-    @tasks = Task.public_tasks.or(current_api_user.tasks.private_tasks)
-
+    @tasks = current_api_user.tasks.all
+  
     render json: @tasks
   end
 
@@ -16,6 +16,7 @@ class Api::TasksController < ApplicationController
   end
 
   # GET /tasks/public
+  # List all public tasks
   def public
     @tasks = Task.public_tasks
 
@@ -23,15 +24,39 @@ class Api::TasksController < ApplicationController
   end
 
   # GET /tasks/private
+  # List all user private tasks
   def private
     @tasks = current_api_user.tasks.private_tasks
 
     render json: @tasks
   end
 
+  # GET /tasks/all
+  # List all public tasks and just the user's private ones
+  def all 
+    @tasks = Task.public_tasks.or(current_api_user.tasks.private_tasks)
+
+    render json: @tasks
+  end
+
+  # GET /tasks/not_finished
+  # List all not finished user tasks
+  def not_finished
+    @tasks = current_api_user.tasks.not_finished_tasks
+
+    render json: @tasks
+  end
+
+  # GET /tasks/finished
+  # List all finished user tasks
+  def finished
+    @tasks = current_api_user.tasks.finished_tasks
+
+    render json: @tasks
+  end
+
   # POST /tasks
   def create
-    #@task = Task.new(task_params)
     @task = current_api_user.tasks.new(task_params)
 
     if @task.save
@@ -43,10 +68,12 @@ class Api::TasksController < ApplicationController
 
   # PATCH/PUT /tasks/id
   def update
-    if @task.update(task_params)
-      render json: @task
-    else 
-      render json: @task.errors, status: :unprocessable_entity
+    unless @task.finished?
+      if @task.update(task_params)
+        render json: @task
+      else 
+        render json: @task.errors, status: :unprocessable_entity
+      end
     end
   end
 
@@ -59,7 +86,6 @@ class Api::TasksController < ApplicationController
 
   # Use callbacks to share common setup or constraints between actions. 
   def set_task
-    #@task = Task.find(params[:id])
     @task = current_api_user.tasks.find(params[:id])
   end
 
