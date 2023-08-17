@@ -62,7 +62,10 @@ DeviseTokenAuth.setup do |config|
   # By default DeviseTokenAuth will not send confirmation email, even when including
   # devise confirmable module. If you want to use devise confirmable module and
   # send email, set it to true. (This is a setting for compatibility)
-  config.send_confirmation_email = true
+  config.send_confirmation_email = false
+
+  config.default_confirm_success_url = 'http://localhost:5173/login'
+
 
   # By default, old tokens are not invalidated when password is changed. Enable this 
   # option if you want to make passwords updates to logout other devices.
