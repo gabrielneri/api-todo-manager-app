@@ -53,7 +53,7 @@ class Api::TasksController < ApplicationController
     end
   end
 
-  # PATCH/PUT /tasks/id/status
+  # PUT /tasks/id/status
   def status
     if @task.update(status: params[:status])
       render json: @task
