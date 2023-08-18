@@ -1,58 +1,34 @@
 class Api::TasksController < ApplicationController
   before_action :authenticate_api_user!
-  before_action :set_task, only: %i[show update destroy]
+  before_action :set_task, only: %i[show update status destroy]
 
-  # GET /tasks 
-  # List all user tasks
+  # GET /tasks?visibility=[public, private, all]&status=[not_finished, finished, all]
   def index
-    @tasks = current_api_user.tasks.all
-  
+    visibility = params[:visibility]
+    status = params[:status]
+
+    if visibility == 'all'
+      tasks_by_visibility = Task.public_tasks.or(current_api_user.tasks.private_tasks)
+    elsif visibility == 'public'
+      tasks_by_visibility = Task.public_tasks
+    else
+      tasks_by_visibility = current_api_user.tasks.private_tasks
+    end
+    
+    if status == 'all'
+      @tasks = tasks_by_visibility
+    elsif status == 'not_finished'
+      @tasks = tasks_by_visibility.not_finished_tasks
+    else
+      @tasks = tasks_by_visibility.finished_tasks
+    end
+
     render json: @tasks
   end
 
   # GET /tasks/id
   def show
     render json: @task
-  end
-
-  # GET /tasks/public
-  # List all public tasks
-  def public
-    @tasks = Task.public_tasks
-
-    render json: @tasks
-  end
-
-  # GET /tasks/private
-  # List all user private tasks
-  def private
-    @tasks = current_api_user.tasks.private_tasks
-
-    render json: @tasks
-  end
-
-  # GET /tasks/all
-  # List all public tasks and just the user's private ones
-  def all 
-    @tasks = Task.public_tasks.or(current_api_user.tasks.private_tasks)
-
-    render json: @tasks
-  end
-
-  # GET /tasks/not_finished
-  # List all not finished user tasks
-  def not_finished
-    @tasks = current_api_user.tasks.not_finished_tasks
-
-    render json: @tasks
-  end
-
-  # GET /tasks/finished
-  # List all finished user tasks
-  def finished
-    @tasks = current_api_user.tasks.finished_tasks
-
-    render json: @tasks
   end
 
   # POST /tasks
@@ -74,6 +50,15 @@ class Api::TasksController < ApplicationController
       else 
         render json: @task.errors, status: :unprocessable_entity
       end
+    end
+  end
+
+  # PATCH/PUT /tasks/id/status
+  def status
+    if @task.update(status: params[:status])
+      render json: @task
+    else 
+      render json: @task.errors, status: :unprocessable_entity
     end
   end
 
